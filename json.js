@@ -11,9 +11,8 @@ var mal_link = ""
 
 /* Get html source of MAL list based on the provided username and parse the embedded json data*/
 function getJson(username) {
-    if (json_text && username === current_user) {
+    if (json_text && username === current_user)
         return json_text
-    }
     current_user = username
     //Get the list webpage
     var url = "https://myanimelist.net/animelist/" + username
@@ -35,13 +34,16 @@ function getJson(username) {
     }
 
     //Invalid username or MAL unreachable
-    if (!found)
+    if (!found) {
+        current_user = ""
         return null
+    }
 
     //Clean string for json parsing
     text = text.replace(/^.*\[/, "{ \"data\" : [")
     text = text.replace(/\">$/,"}");
     text = text.replace(/\&quot\;/g, "\"")
+    text = text.replace(/\&amp\;/g, "&")
     json_text = JSON.parse(text)
     return json_text
     //console.log(text)
@@ -95,13 +97,8 @@ function displayResult(json) {
             urls.push(u)
         }
     }
-    resultRectangle.visible = true
-    titleLabel.visible = true
-    statusLabel.visible = true
     if (!titles.length) {
-        titleLabel.text = "No anime of this type found"
-        statusLabel.text = ""
-        viewMalButton.visible = false
+        resultRectangle.state = "NO_ENTRIES"
         return
     }
     var rand = Math.floor(Math.random() * (titles.length - 1));
@@ -111,9 +108,9 @@ function displayResult(json) {
     url = url.replace("\\", "")
     url = "https://myanimelist.net" + url
     mal_link = url
+    resultRectangle.state = "RESULT"
     titleLabel.text = anime_title
     statusLabel.text = stat
-    viewMalButton.visible = true
     var title_width = titleLabel.width + 20
     var ideal_width = 234;
     resultRectangle.width = ideal_width < title_width ? title_width : ideal_width
@@ -126,4 +123,9 @@ WorkerScript.onMessage = function(msg) {
 
 function send_to_mal() {
     backend.go_to_mal(mal_link)
+}
+
+function get_random_result() {
+    statusBar.state = "WORKING"
+    worker.sendMessage({"user" : username.text})
 }

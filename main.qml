@@ -13,17 +13,15 @@ ApplicationWindow {
     height: 480
     title: qsTr("MAL Roulette")
 
-    function get_random_result() {
-        statusbarStatus.text = "Working..."
-        worker.sendMessage({"user" : username.text})
-    }
-
     WorkerScript {
         id: worker
         source: "json.js"
         onMessage: {
-            Json.displayResult(messageObject.done)
-            statusbarStatus.text = ""
+            if (messageObject.done)
+                Json.displayResult(messageObject.done)
+            else
+                resultRectangle.state = "NO_MAL"
+            statusBar.state = ""
         }
     }
 
@@ -36,9 +34,9 @@ ApplicationWindow {
         x: 220
         y: 220
         placeholderText: qsTr("Username")
-        onAccepted: get_random_result()
+        onAccepted:Json.get_random_result()
         selectByMouse: true
-        text: "Miyukiichan"
+        text: ""
         anchors.verticalCenterOffset: -103
         anchors.horizontalCenterOffset: -59
         anchors.horizontalCenter: parent.horizontalCenter
@@ -54,7 +52,7 @@ ApplicationWindow {
         anchors.horizontalCenterOffset: 113
         anchors.verticalCenter: parent.verticalCenter
         anchors.horizontalCenter: parent.horizontalCenter
-        onClicked: get_random_result()
+        onClicked: Json.get_random_result()
     }
 
      CheckBox {
@@ -142,11 +140,79 @@ ApplicationWindow {
          visible: false
          border.width: 2
 
+         states: [
+            State {
+                 name: "RESULT"
+                 PropertyChanges {
+                     target: resultRectangle
+                     visible: true
+                     border.color: "black"
+                 }
+                 PropertyChanges {
+                     target: titleLabel
+                     color: "black"
+                     visible: true
+                 }
+                 PropertyChanges {
+                     target: statusLabel
+                     visible: true
+                 }
+                 PropertyChanges {
+                     target: viewMalButton
+                     visible: true
+                 }
+             },
+             State {
+                 name: "NO_MAL"
+                 PropertyChanges {
+                     target: resultRectangle
+                     visible: true
+                     border.color: "red"
+                 }
+                 PropertyChanges {
+                     target: titleLabel
+                     visible: true
+                     color: "red"
+                     text: "Invalid username or MAL unreachable"
+                 }
+                 PropertyChanges {
+                     target: statusLabel
+                     visible: false
+                 }
+                 PropertyChanges {
+                     target: viewMalButton
+                     visible: false
+                 }
+             },
+             State {
+                 name: "NO_ENTRIES"
+                 PropertyChanges {
+                     target: resultRectangle
+                     visible: true
+                     border.color: "red"
+                 }
+                 PropertyChanges {
+                     target: titleLabel
+                     visible: true
+                     color: "red"
+                     text: "No anime of this type found"
+                 }
+                 PropertyChanges {
+                     target: statusLabel
+                     visible: false
+                 }
+                 PropertyChanges {
+                     target: viewMalButton
+                     visible: false
+                 }
+             }
+         ]
+
          Label {
              id: titleLabel
              x: 104
              y: 13
-             text: qsTr("Label")
+             text: qsTr("")
              visible: false
              anchors.verticalCenterOffset: -13
              anchors.horizontalCenterOffset: 0
@@ -158,7 +224,7 @@ ApplicationWindow {
              id: statusLabel
              x: 95
              y: 22
-             text: qsTr("Label")
+             text: qsTr("")
              visible: false
              anchors.horizontalCenter: parent.horizontalCenter
              anchors.horizontalCenterOffset: 0
@@ -185,6 +251,16 @@ ApplicationWindow {
              y: 5
              text: qsTr("")
          }
+         states: [
+            State {
+                 name: "WORKING"
+                 PropertyChanges {
+                     target: statusbarStatus
+                     text: "Working"
+                 }
+             }
+
+         ]
      }
 
      Button {
